@@ -2,7 +2,8 @@ import pygame,sys,random
 from pygame.math import Vector2
 pygame.init()
 
-
+title_font= pygame.font.Font(None,60)
+score_font =pygame.font.Font(None,40)
 cell_size=30
 cell_number=25
 GREEN = (173,204,96)
@@ -31,6 +32,8 @@ class Snake:
         self.body = [Vector2(6,9),Vector2(5,9),Vector2(4,9)]
         self.direction = Vector2(1,0)
         self.add_segment= False
+        self.wall = pygame.mixer.Sound('assets/Stomach Thumps.mp3')
+        self.eat_sound =pygame.mixer.Sound('assets/Cartoon Cowbell.mp3')
     def draw(self):
         for segment in self.body:
             segment_rect = pygame.Rect(offset+segment.x*cell_size,offset+segment.y*cell_size,cell_size,cell_size)
@@ -52,6 +55,7 @@ class Game:
         self.snake= Snake()
         self.food= Food(self.snake.body)
         self.state = 'running'
+        self.score = 0
     def draw(self):
         self.snake.draw()
         self.food.draw()
@@ -65,6 +69,8 @@ class Game:
         if self.food.position == self.snake.body[0]:
             self.food.position = self.food.generate_random_position(self.snake.body)
             self.snake.add_segment = True  
+            self.score+=1
+            self.snake.eat_sound.play()
     def check_collision(self):
         if self.snake.body[0].x>=cell_number or self.snake.body[0].x<0 or self.snake.body[0].y>=cell_number or self.snake.body[0].y<0:
             self.game_over()
@@ -72,6 +78,8 @@ class Game:
         self.snake.reset()
         self.food.position = self.food.generate_random_position(self.snake.body)
         self.state = 'stopped'
+        self.snake.wall.play()
+        self.score=0
     def check_collison_with_self(self):
         if self.snake.body[0] in self.snake.body[1:]:
             self.game_over()
@@ -114,6 +122,10 @@ while True:
     screen.fill(GREEN)
     pygame.draw.rect(screen, DARK_GREEN, (offset-5,offset-5,cell_size*cell_number+10,cell_size*cell_number+10), 5)
     game.draw()
+    title_surface = title_font.render('Snake Game',False,DARK_GREEN)
+    score_surface = score_font.render('Score:'+str(game.score),False,DARK_GREEN)
+    screen.blit(title_surface,(offset-10,0))
+    screen.blit(score_surface,(offset+cell_size*cell_number-100,0))
     pygame.display.update()
     clock.tick(60)
 
